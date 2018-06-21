@@ -98,6 +98,7 @@ ForEach ($install in $roles_enable){
     Dism.exe /Online /Enable-Feature /FeatureName:$install /All /NoRestart | Out-Null 
 }
 
+function install-malwarebytes {
 # Install MalwareBytes
 Write-Host "Installing MalwareBytes"
 New-Item "C:\ProgramData\Malwarebytes\Malwarebytes Anti-Malware\Configuration" -itemtype directory | Out-Null 
@@ -107,7 +108,9 @@ Start-Sleep -s 5
 Copy-Item -Path "$temp\Malwarebytes\license.conf" -Destination "C:\ProgramData\Malwarebytes\Malwarebytes Anti-Malware\Configuration" | Out-Null 
 Copy-Item -Path "$temp\Malwarebytes\exclusions.dat" -Destination "C:\ProgramData\Malwarebytes\Malwarebytes Anti-Malware" | Out-Null 
 Start-Process "$temp\malwarebyteslatest.exe" -ArgumentList "/verysilent" -Wait
+}
 
+function install-nvidia {
 # Install Latest nVidia Driver
 Write-Host "Installing Latest nVidia Drivers"
 choco.exe install Geforce-Game-Ready-Driver -y | Out-Null
@@ -116,16 +119,20 @@ Write-Host "Downloading & Setting Nvidia RGB to Full"
 $webclient.DownloadFile("https://blog.metaclassofnil.com/wp-content/uploads/2012/08/NV_RGBFullRangeToggle.zip","$temp\NvidiaRGBLatest.zip") | Out-Null
 Expand-Archive "$temp\NvidiaRGBLatest.zip" -DestinationPath "$temp\NvidiaRGBLatest" -Force
 Start-Process "$temp\NvidiaRGBLatest\NV_RGBFullRangeToggle.exe" -Wait
+}
 
+function install-chocolaty-apps {
 # Install Chocolatey Apps 
 Write-Host ""
 Write-Host "Installing Apps via Chocolatey" -Foreground yellow
-ForEach ($program in $choco_installs){ 
-    Write-Host "Installing $program" 
-    choco.exe install $program -y | Out-Null
-    choco.exe install vlc --x86 -y | Out-Null
+    ForEach ($program in $choco_installs){ 
+        Write-Host "Installing $program" 
+        choco.exe install $program -y | Out-Null
+        choco.exe install vlc --x86 -y | Out-Null
+    }
 }
 
+function install-asus-aisuite {
 # Install ASUS AI Suite 3"
 Write-Host ""
 Write-Host "Installing latest Apps via Download" -Foreground yellow
@@ -133,68 +140,126 @@ Write-Host "Downloading & Installing ASUS AI Suite 3"
 $webclient.DownloadFile("https://dlcdnet.asus.com/pub/ASUS/mb/Utility/AI_Suite_III_3.00.13_DIP5_1.05.13.zip","$temp\AsusAILatest.zip") | Out-Null
 Expand-Archive "$temp\AsusAILatest.zip" -DestinationPath "$temp\AsusAILatest" -Force
 Start-Process "$temp\AsusAILatest\AsusSetup.exe" -ArgumentList "/s" -Wait
+    If (Test-Path -Path "$userstartmenu\ASUS\AI Suite 3.lnk"){
+        Move-Item -Path "$startmenu\ASUS\AI Suite 3\AI Suite 3.lnk" -Destination "$startmenu\ASUS AI Suite 3.lnk" -Force
+    }
+}
 
+function install-asus-gputweak {
 # Install ASUS GPUTweak II
 Write-Host "Downloading & Installing ASUS GPUTweak II"
 $webclient.DownloadFile("https://dlcdnet.asus.com/pub/ASUS/vga/vga/GPUTweak2_Ver1626_20180514.zip","$temp\AsusGPUTweakLatest.zip") | Out-Null
 Expand-Archive "$temp\AsusGPUTweakLatest.zip" -DestinationPath "$temp\AsusGPUTweakLatest" -Force
 Start-Process "$temp\AsusGPUTweakLatest\GPUTweak2*\Setup.exe" -ArgumentList "/s" -Wait
+    If (Test-Path -Path "$userstartmenu\ASUS\ASUS GPU Tweak II.lnk"){
+        Move-Item -Path "$startmenu\ASUS\ASUS GPU Tweak II.lnk" -Destination "$startmenu\ASUS GPU Tweak II.lnk" -Force
+        Remove-Item -Path "$startmenu\ASUS" -Recurse -Force
+    }
+}
 
+function install-printer-drivers {
 # Install Canon Printer Drivers
 Write-Host "Downloading & Installing Canon Printer Drivers"
 $webclient.DownloadFile("https://pdisp01.c-wss.com/gdl/WWUFORedirectTarget.do?id=MDEwMDAwMjkxMzAz&amp;cmp=ACB&amp;lang=EN","$temp\CanonDriversLatest.zip") | Out-Null
 Expand-Archive "$temp\CanonDriversLatest.zip" -DestinationPath "$temp\CanonDriversLatest" -Force
 Start-Process "$temp\CanonDriversLatest\mp68*\DrvSetup\setup.exe" -ArgumentList "/quiet" -Wait
+    If (Test-Path -Path "$startmenu\Canon MG5200 series"){
+        Remove-Item -Path "$startmenu\Canon MG5200 series" -Recurse -Force
+    }
+}
 
+function install-discord {
 # Install Discord
 Write-Host "Downloading & Installing Discord"
 $webclient.DownloadFile("https://discordapp.com/api/download?platform=win","$temp\DiscordLatest.exe") | Out-Null 
 Start-Process "$temp\DiscordLatest.exe" -ArgumentList "/s" -Wait
+    If (Test-Path -Path "$userstartmenu\Discord Inc"){
+        Move-Item -Path "$userstartmenu\Discord Inc\Discord.lnk" -Destination "$startmenu\Discord.lnk" -Force
+        Remove-Item -Path "$userstartmenu\Discord Inc" -Recurse -Force
+    }
+}
 
+function install-epic-games-launcher {
 # Install Epic Games Launcher
 Write-Host "Downloading & Installing Epic Games Launcher"
 $webclient.DownloadFile("https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi","$temp\EpicLatest.msi") | Out-Null 
 Start-Process "$temp\EpicLatest.msi" -ArgumentList "/quiet" -Wait
+    If (Test-Path -Path "$startmenu\Epic Games Launcher"){
+        Move-Item -Path "$startmenu\Epic Games Launcher.lnk" -Destination "$startmenu\Games\Epic Games Launcher.lnk" -Force
+    }
+}
 
+function install-github {
 # Install GitHub
 Write-Host "Downloading & Installing GitHub"
 $webclient.DownloadFile("https://central.github.com/deployments/desktop/desktop/latest/win32?format=msi","$temp\GitHubLatest.msi") | Out-Null
 Start-Process "$temp\GitHubLatest.msi" -ArgumentList "/quiet" -Wait
+}
 
+function install-intel-tuning-utility {
 # Install Intel Extreme Tuning Utility
 Write-Host "Downloading & Installing Intel Extreme Tuning Utility"
 $webclient.DownloadFile("https://downloadmirror.intel.com/24075/eng/XTUSetup.exe","$temp\IntelOverclockingLatest.exe") | Out-Null 
 Start-Process "$temp\IntelOverclockingLatest.exe" -ArgumentList "/quiet /norestart" -Wait
+    If (Test-Path -Path "$startmenu\Intel"){
+        Move-Item -Path "$startmenu\Intel\Intel(R) Extreme Tuning Utility.lnk" -Destination "$startmenu\Intel Extreme Tuning.lnk" -Force
+        Remove-Item -Path "$startmenu\Intel" -Recurse -Force
+    }
+}
 
+function install-jump-desktop {
 # Install Jump Desktop
 Write-Host "Downloading & Installing Jump Desktop"
 $webclient.DownloadFile("https://jumpdesktop.com/downloads/jdwin","$temp\JumpDesktopLatest.exe") | Out-Null
 Start-Process "$temp\JumpDesktopLatest.exe" -Wait
+}
 
+function install-jump-desktop-connect {
 # Install Jump Desktop Connect
 Write-Host "Downloading & Installing Jump Desktop Connect"
 $webclient.DownloadFile("https://jumpdesktop.com/downloads/connect/win","$temp\JumpDesktopConnectLatest.exe") | Out-Null
 Start-Process "$temp\JumpDesktopConnectLatest" -ArgumentList "/quiet" -Wait
+}
 
+function install-microsoft-keyboard {
 # Install Microsoft Keyboard Center
 Write-Host "Downloading & Installing Microsoft Keyboard Center"
 $webclient.DownloadFile("https://go.microsoft.com/fwlink/?linkid=849754","$temp\MSKeybCenterLatest.exe") | Out-Null 
 Start-Process "$temp\MSKeybCenterLatest.exe" -ArgumentList "/silentinstall" -Wait
+}
 
+function install-origin {
 # Install Origin
 Write-Host "Downloading & Installing Origin"
 $webclient.DownloadFile("https://www.dm.origin.com/download","$temp\OriginLatest.exe") | Out-Null 
 Start-Process "$temp\OriginLatest.exe" -ArgumentList "/silent /noeula" -Wait
+    If (Test-Path -Path "$startmenu\Origin"){
+        Move-Item -Path "$startmenu\Origin\Origin.lnk" -Destination "$startmenu\Games\Origin.lnk" -Force
+        Remove-Item -Path "$startmenu\Origin" -Recurse -Force
+    }
+}
 
+function install-polar-flow {
 # Install Polar FlowSync
 Write-Host "Downloading & Installing Polar FlowSync"
 $webclient.DownloadFile("https://dngo5v6w7xama.cloudfront.net/connect/download/FlowSync_2.6.2.exe","$temp\PolarFlowLatest.exe") | Out-Null
 Start-Process "$temp\PolarFlowLatest.exe" -ArgumentList "/verysilent" -Wait
+    If (Test-Path -Path "$startmenu\Polar"){
+        Move-Item -Path "$startmenu\Polar\Polar FlowSync\Polar FlowSync.lnk" -Destination "$startmenu\Polar FlowSync.lnk" -Force
+        Remove-Item -Path "$startmenu\Polar" -Recurse -Force
+    }
+}
 
+function install-wargaming {
 # Install Wargaming Game Center
 Write-Host "Downloading & Installing Wargaming Game Center"
 $webclient.DownloadFile("https://redirect.wargaming.net/WGC/Wargaming_Game_Center_Install_WoWS_EU.exe","$temp\WargamingLatest.exe") | Out-Null 
 Start-Process "$temp\WargamingLatest.exe" -ArgumentList "/s" -Wait
+    If (Test-Path -Path "$startmenu\Wargaming.net"){
+        Move-Item -Path "$startmenu\Wargaming.net\Wargaming.net Game Center.lnk" -Destination "$startmenu\Games\Wargaming.net Game Center.lnk" -Force
+        Remove-Item -Path "$startmenu\Wargaming.net" -Recurse -Force
+    }
+}
 
 # Install 1Password
 Write-Host "Downloading & Installing 1Password"
@@ -275,10 +340,7 @@ If (Test-Path -Path "$userstartmenu\Amazon Music"){
     Move-Item -Path "$userstartmenu\Amazon Music\Amazon Music.lnk" -Destination "$startmenu\Amazon Music.lnk" -Force
     Remove-Item -Path "$userstartmenu\Amazon Music" -Recurse -Force
 }
-If (Test-Path -Path "$userstartmenu\Discord Inc"){
-    Move-Item -Path "$userstartmenu\Discord Inc\Discord.lnk" -Destination "$startmenu\Discord.lnk" -Force
-    Remove-Item -Path "$userstartmenu\Discord Inc" -Recurse -Force
-}
+
 If (Test-Path -Path "$userstartmenu\Maintenance"){
     Remove-Item -Path "$userstartmenu\Maintenance" -Recurse -Force
 }
@@ -299,20 +361,13 @@ If (Test-Path -Path "$startmenu\1Password"){
     Move-Item -Path "$startmenu\1Password\1Password 4.lnk" -Destination "$startmenu\1Password.lnk" -Force
     Remove-Item -Path "$startmenu\1Password" -Recurse -Force
 }
-If (Test-Path -Path "$userstartmenu\ASUS\AI Suite 3.lnk"){
-    Move-Item -Path "$startmenu\ASUS\AI Suite 3\AI Suite 3.lnk" -Destination "$startmenu\ASUS AI Suite 3.lnk" -Force
-}
-If (Test-Path -Path "$userstartmenu\ASUS\ASUS GPU Tweak II.lnk"){
-    Move-Item -Path "$startmenu\ASUS\ASUS GPU Tweak II.lnk" -Destination "$startmenu\ASUS GPU Tweak II.lnk" -Force
-    Remove-Item -Path "$startmenu\ASUS" -Recurse -Force
-}
+
+
 If (Test-Path -Path "$startmenu\Battle.net"){
     Move-Item -Path "$startmenu\Battle.net\Battle.net.lnk" -Destination "$startmenu\Games\Battle.net.lnk" -Force
     Remove-Item -Path "$startmenu\Battle.net" -Recurse -Force
 }
-If (Test-Path -Path "$startmenu\Cannon MG5200 series"){
-    Remove-Item -Path "$startmenu\Canon MG5200 series" -Recurse -Force
-}
+
 If (Test-Path -Path "$startmenu\CCleaner"){
     Move-Item -Path "$startmenu\CCleaner\CCleaner.lnk" -Destination "$startmenu\CCleaner.lnk" -Force
     Remove-Item -Path "$startmenu\CCleaner" -Recurse -Force
@@ -337,13 +392,8 @@ If (Test-Path -Path "$startmenu\Driver Booster 5"){
     Move-Item -Path "$startmenu\Driver Booster 5\Driver Booster 5.lnk" -Destination "$startmenu\Driver Booster.lnk" -Force
     Remove-Item -Path "$startmenu\Driver Booster 5" -Recurse -Force
 }
-If (Test-Path -Path "$startmenu\Epic Games Launcher"){
-    Move-Item -Path "$startmenu\Epic Games Launcher.lnk" -Destination "$startmenu\Games\Epic Games Launcher.lnk" -Force
-}
-If (Test-Path -Path "$startmenu\Intel"){
-    Move-Item -Path "$startmenu\Intel\Intel(R) Extreme Tuning Utility.lnk" -Destination "$startmenu\Intel Extreme Tuning.lnk" -Force
-    Remove-Item -Path "$startmenu\Intel" -Recurse -Force
-}
+
+
 If (Test-Path -Path "$startmenu\Logitech"){
     Move-Item -Path "$startmenu\Logitech\Logitech Gaming*.lnk" -Destination "$startmenu\Logitech Gaming.lnk" -Force
     Remove-Item -Path "$startmenu\Logitech" -Recurse -Force
@@ -366,10 +416,7 @@ If (Test-Path -Path "$startmenu\Notepad++"){
     Move-Item -Path "$startmenu\Notepad++\Notepad++.lnk" -Destination "$startmenu\Notepad++.lnk" -Force
     Remove-Item -Path "$startmenu\Notepad++" -Recurse -Force
 }
-If (Test-Path -Path "$startmenu\Polar"){
-    Move-Item -Path "$startmenu\Polar\Polar FlowSync\Polar FlowSync.lnk" -Destination "$startmenu\Polar FlowSync.lnk" -Force
-    Remove-Item -Path "$startmenu\Polar" -Recurse -Force
-}
+
 If (Test-Path -Path "$startmenu\PowerShell"){
     Move-Item -Path "$startmenu\PowerShell\PowerShell 6.0.2.lnk" -Destination "$startmenu\PowerShell Core.lnk" -Force
     Remove-Item -Path "$startmenu\PowerShell" -Recurse -Force
@@ -386,7 +433,7 @@ If (Test-Path -Path "$startmenu\VideoLAN"){
     Move-Item -Path "$startmenu\VideoLAN\VLC media player skinned.lnk" -Destination "$startmenu\VLC.lnk" -Force
     Remove-Item -Path "$startmenu\VideoLAN" -Recurse -Force
 }
-If (Test-Path -Path "$startmenu\Visucal Studio Code"){
+If (Test-Path -Path "$startmenu\Visual Studio Code"){
     Move-Item -Path "$startmenu\Visual Studio Code\Visual Studio Code.lnk" -Destination "$startmenu\Visual Studio Code.lnk" -Force
     Remove-Item -Path "$startmenu\Visual Studio Code" -Recurse -Force
 }
@@ -396,10 +443,7 @@ If (Test-Path -Path "$startmenu\VMware"){
     Move-Item -Path "$startmenu\VMware\VMware Workstation Pro.lnk" -Destination "$startmenu\VMware Workstation Pro.lnk" -Force
     Remove-Item -Path "$startmenu\VMware" -Recurse -Force
 }
-If (Test-Path -Path "$startmenu\Wargaming.net"){
-    Move-Item -Path "$startmenu\Wargaming.net\Wargaming.net Game Center.lnk" -Destination "$startmenu\Games\Wargaming.net Game Center.lnk" -Force
-    Remove-Item -Path "$startmenu\Wargaming.net" -Recurse -Force
-}
+
 If (Test-Path -Path "$startmenu\WinRAR"){
     Remove-Item -Path "$startmenu\WinRAR" -Recurse -Force
 }
@@ -410,10 +454,7 @@ If (Test-Path -Path "$startmenu\XnViewMP"){
 If (Test-Path -Path "$startmenu\Onedrive for Business"){
     Remove-Item -Path "$startmenu\Onedrive for Business.lnk" -Recurse -Force
 }
-If (Test-Path -Path "$startmenu\Origin"){
-    Move-Item -Path "$startmenu\Origin\Origin.lnk" -Destination "$startmenu\Games\Origin.lnk" -Force
-    Remove-Item -Path "$startmenu\Origin" -Recurse -Force
-}
+
 If (Test-Path -Path "$startmenu\Skype for Business 2016"){
     Remove-Item -Path "$startmenu\Skype for Business 2016.lnk" -Recurse -Force
 }
